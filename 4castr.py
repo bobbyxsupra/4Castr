@@ -10,15 +10,15 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from dateutil import parser
 from aiohttp_retry import RetryClient, ExponentialRetry
-import math  # Import the math module
+import math  
 
-# Load .env file
+
 load_dotenv()
 
-# Set up logging
+
 logging.basicConfig(level=logging.DEBUG)
 
-# Square API credentials and endpoints
+
 square_access_token = os.getenv('SQUARE_ACCESS_TOKEN')
 location_id = os.getenv('LOCATION_ID')
 headers = {
@@ -27,11 +27,11 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# GUI setup
+
 root = tk.Tk()
 root.title("4castr")
 
-# Variables to store selected categories
+
 selected_categories = []
 show_all_var = tk.BooleanVar(value=False)
 
@@ -69,16 +69,16 @@ def adjust_column_width():
     total_width = 0
     font = tkfont.Font()
     for getcol in tree["columns"]:
-        max_width = font.measure(getcol) + 10  # Width for the header with padding
+        max_width = font.measure(getcol) + 10  
         for item in tree.get_children():
             cell_text = str(tree.item(item, 'values')[columns.index(getcol)])
-            cell_width = font.measure(cell_text) + 10  # Width for each cell with padding
+            cell_width = font.measure(cell_text) + 10  
             if cell_width > max_width:
                 max_width = cell_width
         tree.column(getcol, width=max_width)
         total_width += max_width
-    total_height = 600  # You can adjust the height as needed
-    root.geometry(f"{total_width}x{total_height}")  # Adjust window size to fit columns and a fixed height
+    total_height = 600  
+    root.geometry(f"{total_width}x{total_height}")  
 
 
 def display_forecast():
@@ -93,17 +93,17 @@ async def fetch_and_display_forecast():
         for index, (item_id, name_data) in enumerate(variation_names.items()):
             category_id = name_data.get('category_id') or name_data.get('reporting_category_id')
             category_name = category_names.get(category_id, "Unknown Category")
-            total_sold = sum(sales_summary.get(item_id, {}).values())  # Extract total sold
+            total_sold = sum(sales_summary.get(item_id, {}).values())  
             avg_daily_sold = daily_sales.get(item_id, 0)
             order_needed = forecasted_orders.get(item_id, 0)
-            max_monthly_sales = monthly_maximums.get(item_id, 0)  # Get Monthly Max
+            max_monthly_sales = monthly_maximums.get(item_id, 0)  
             if show_all_var.get() or order_needed > 0:
                 month_1_sales = monthly_sales[item_id][0]
                 month_2_sales = monthly_sales[item_id][1]
                 month_3_sales = monthly_sales[item_id][2]
                 weekly_sales = avg_daily_sold * 12
                 monthly_max_div_10 = max_monthly_sales / 10
-                alert_value = math.ceil(weekly_sales + monthly_max_div_10)  # Round up the value
+                alert_value = math.ceil(weekly_sales + monthly_max_div_10)  
                 tree.insert("", tk.END, values=(
                     category_name,
                     name_data['name'],
@@ -115,7 +115,7 @@ async def fetch_and_display_forecast():
                     total_sold,
                     f"{avg_daily_sold:.2f}",
                     alert_value), tags=('row',))
-        # Configure alternating row colors and font color
+                
         tree.tag_configure('even', background='black', foreground='limegreen')
         tree.tag_configure('odd', background='gray9', foreground='forestgreen')
         for i, item in enumerate(tree.get_children()):
@@ -226,27 +226,27 @@ async def fetch_category_names_with_session(session):
 def calculate_date_range():
     today = datetime.now(timezone.utc)
 
-    # Get the first day of the current month
+    
     first_day_this_month = today.replace(day=1)
 
-    # Get the first day of the last month
+ 
     last_month_end = first_day_this_month - timedelta(days=1)
     last_month_start = last_month_end.replace(day=1)
 
-    # Get the first day of the month before last
+    
     second_last_month_end = last_month_start - timedelta(days=1)
     second_last_month_start = second_last_month_end.replace(day=1)
 
-    # Get the first day of the month three months ago
+
     third_last_month_end = second_last_month_start - timedelta(days=1)
     third_last_month_start = third_last_month_end.replace(day=1)
 
-    # The start date is the first day of the month three months ago
+
     start_date = third_last_month_start
-    # The end date is the last day of the last month
+
     end_date = last_month_end
 
-    # Get the dates for each month
+
     month_dates = [
         (third_last_month_start, second_last_month_start - timedelta(days=1)),
         (second_last_month_start, last_month_start - timedelta(days=1)),
@@ -358,13 +358,13 @@ def calculate_monthly_maximum(sales_data, month_dates):
     for item_id, sales_by_date in sales_data.items():
         monthly_sales = []
         for start_date, end_date in month_dates:
-            # Calculate total sales for the current month
+
             total_monthly_sales = sum(
                 qty for sale_date, qty in sales_by_date.items()
                 if start_date <= sale_date <= end_date
             )
             monthly_sales.append(total_monthly_sales)
-        # Find the maximum sales among the three months
+
         max_sales = max(monthly_sales)
         monthly_maximums[item_id] = max_sales
 
@@ -412,7 +412,7 @@ def show_category_selector(categories):
 
     category_vars = {category_id: tk.BooleanVar() for category_id in categories}
 
-    # Sort categories alphabetically by name
+
     sorted_categories = sorted(categories.items(), key=lambda item: item[1])
 
     for category_id, category_name in sorted_categories:
@@ -439,17 +439,17 @@ async def fetch_and_show_categories():
     show_category_selector(categories)
 
 
-# Add checkbox to toggle showing all results
+
 show_all_checkbox = tk.Checkbutton(root, text="Show All", variable=show_all_var)
 show_all_checkbox.pack()
 
-# Add button to open category selector
+
 category_button = tk.Button(root, text="Select Categories", command=open_category_selector)
 category_button.pack()
 
-# Add button to fetch and forecast data
+
 fetch_button = tk.Button(root, text="Fetch and Forecast", command=display_forecast)
 fetch_button.pack()
 
-# Run the GUI
+
 root.mainloop()
